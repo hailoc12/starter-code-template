@@ -39,7 +39,11 @@ async def human_review_node(state: AgentState) -> dict:
     trace = list(state.get("tool_trace", []))
 
     if answer == "approve":
-        output = TOOL_REGISTRY[pending["tool"]].invoke(pending["args"])
+        try:
+            output = TOOL_REGISTRY[pending["tool"]].invoke(pending["args"])
+        except Exception as exc:  # giống act_node: lỗi tool là DỮ KIỆN, không làm sập graph
+            logger.error("FAILED human_review — tool %s lỗi: %s", pending["tool"], exc)
+            output = f"TOOL_ERROR: {exc}"
         trace.append({"tool": pending["tool"], "args": pending["args"], "output": str(output)})
         decisions.append({"tool": pending["tool"], "decision": "approve"})
         logger.info("human_review APPROVE — %s đã chạy", pending["tool"])

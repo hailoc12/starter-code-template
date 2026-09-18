@@ -16,7 +16,10 @@ import json
 import sys
 from pathlib import Path
 
-from src.services.llm import get_llm
+# Bootstrap import từ repo root khi chạy `python eval/judge.py`
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from src.services.llm import get_llm  # noqa: E402
 
 JUDGE_RUBRIC = """Chấm response theo 4 tiêu chí (1-5 mỗi tiêu chí):
 - faithfulness: đúng ngữ cảnh/knowledge, không bịa.

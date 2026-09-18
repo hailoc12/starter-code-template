@@ -52,12 +52,23 @@ async def guardrail_check_node(state: AgentState) -> dict:
 
 
 def make_entry_node(max_iterations: int):
-    """Seed state loop-limit MỘT lần ở entry — router sau chỉ đọc state."""
+    """Seed state loop-limit MỘT lần ở entry — router sau chỉ đọc state.
+
+    Checkpointer giữ state theo thread_id, nên mỗi lượt chat mới phải reset các
+    field per-turn — nếu không refusal/tool_trace/iteration_count của lượt trước
+    dính sang lượt sau. Resume HITL đi qua Command, không qua entry, nên an toàn.
+    """
 
     async def entry_node(state: AgentState) -> dict:
         return {
             "max_iterations": state.get("max_iterations", max_iterations),
-            "iteration_count": state.get("iteration_count", 0),
+            "iteration_count": 0,
+            "refusal_reason": "",
+            "tool_trace": [],
+            "last_decision": {},
+            "pending_action": None,
+            "human_decisions": [],
+            "response": "",
         }
 
     return entry_node

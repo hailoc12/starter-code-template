@@ -7,18 +7,23 @@ silent fallback.
 """
 
 from typing import Literal
+from uuid import uuid4
 
 from pydantic import BaseModel, Field, model_validator
 
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=5000, description="Tin nhắn từ user")
-    session_id: str = Field(default="default", description="Thread ID cho checkpointer (HITL multi-turn)")
+    session_id: str = Field(
+        default_factory=lambda: uuid4().hex,
+        description="Thread ID cho checkpointer (HITL multi-turn). Bỏ trống → mỗi request một thread mới",
+    )
 
 
 class ChatResponse(BaseModel):
     response: str = Field(..., description="Phản hồi từ agent")
     analysis: str = Field(default="", description="Phân tích nội bộ (tool trace tóm tắt)")
+    session_id: str = Field(default="", description="Thread ID để gửi lại khi resume / chat tiếp")
 
 
 class AgentDecision(BaseModel):

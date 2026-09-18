@@ -40,9 +40,6 @@ class Settings(BaseSettings):
     # Vector Store
     chroma_persist_dir: str = "./data/chroma"
 
-    # Agent — retry loop budget (chống graph loop vô tận, inspire team 003)
-    agent_max_iterations: int = Field(default=2, ge=1, le=5)
-
 
 @lru_cache
 def get_settings() -> Settings:

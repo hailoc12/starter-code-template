@@ -64,3 +64,24 @@ async def test_safe_tool_never_interrupts():
     result = await graph.ainvoke({"query": "Tính 1+1"}, config=CONFIG)
     assert "__interrupt__" not in result
     assert result["tool_trace"][0]["output"] == "2"
+
+
+class _BrokenTool:
+    def invoke(self, args):
+        raise RuntimeError("SMTP từ chối người nhận")
+
+
+@pytest.mark.asyncio
+async def test_approved_risky_tool_error_is_recorded_not_raised(monkeypatch):
+    from src.agents.nodes import human_review_node
+
+    monkeypatch.setitem(human_review_node.TOOL_REGISTRY, "send_email", _BrokenTool())
+    reasoner = ScriptedReasoner([_email_decision(), _final()])
+    graph = make_test_graph(reasoner)
+    config = {"configurable": {"thread_id": "hitl-broken-tool"}}
+
+    await graph.ainvoke({"query": "Gửi email"}, config=config)
+    resumed = await graph.ainvoke(Command(resume="approve"), config=config)
+
+    assert resumed["tool_trace"][-1]["output"].startswith("TOOL_ERROR:")
+    assert "FAKE ANSWER" in resumed["response"]
