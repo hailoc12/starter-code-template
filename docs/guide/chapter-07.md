@@ -1,9 +1,9 @@
 ---
 title: "DevOps và Triển khai"
-weight: 7
+weight: 12
 ---
 
-## 7.1 Docker — Container hóa ứng dụng
+## 12.1 Docker — Container hóa ứng dụng
 
 Docker là một nền tảng (platform) cho phép bạn đóng gói ứng dụng cùng toàn bộ dependencies (thư viện, cấu hình, biến môi trường) vào một đơn vị gọi là **container**. Container đảm bảo ứng dụng chạy đồng nhất trên mọi máy — từ laptop của bạn đến server production. Trong AI20K, 100% BTC chấm điểm DevOps, và Docker là công cụ nền tảng để đạt điểm cao.
 
@@ -64,7 +64,7 @@ Khi bạn phát triển ứng dụng AI Agent, Docker đặc biệt quan trọng
 
 > ⚠️ **LƯU Ý:** Không lưu secrets (API keys, passwords) trong Docker image. Sử dụng environment variables hoặc Docker secrets để truyền thông tin nhạy cảm lúc runtime.
 
-## 7.2 Multi-stage Dockerfile
+## 12.2 Multi-stage Dockerfile
 
 Multi-stage build là kỹ thuật Docker cho phép bạn sử dụng nhiều stage (giai đoạn) trong một `Dockerfile`. Stage đầu tiên (builder) cài đặt dependencies và build ứng dụng. Stage thứ hai (production) chỉ copy kết quả build, bỏ qua toàn bộ công cụ build. Kết quả: image production nhỏ gọn hơn 5-10 lần, an toàn hơn vì không chứa build tools.
 
@@ -162,7 +162,7 @@ docker-compose.yml
 
 File `.dockerignore` giống `.gitignore` — ngăn các file không cần thiết vào Docker context, giúp build nhanh hơn và image nhỏ hơn.
 
-## 7.3 Docker Compose — Quản lý nhiều dịch vụ
+## 12.3 Docker Compose — Quản lý nhiều dịch vụ
 
 Docker Compose là công cụ cho phép bạn định nghĩa và chạy nhiều container (nhiều dịch vụ) cùng lúc bằng một file YAML. Thay vì gõ 5-6 lệnh `docker run` dài dòng, bạn viết một file `docker-compose.yml` và chạy `docker compose up` — mọi thứ tự động khởi động, kết nối mạng, và quản lý vòng đời.
 
@@ -202,7 +202,7 @@ services:
       retries: 3
       start_period: 10s
     volumes:
-      - ./src:/app/src  # Hot reload khi dev
+      - ./app:/app/app  # Hot reload khi dev
     networks:
       - agent-network
     deploy:
@@ -292,7 +292,7 @@ Giải thích các khái niệm chính:
 
 **Resource limits:** `deploy.resources.limits` giới hạn memory và CPU cho mỗi container. Nếu API bị memory leak (rất phổ biến với Python + AI models), nó chỉ dùng tối đa 512MB thay vì chiếm toàn bộ RAM server, ảnh hưởng đến các dịch vụ khác.
 
-> 💡 **MẸO:** Khi phát triển (development), thêm `volumes: - ./src:/app/src` để hot reload — thay đổi code trên máy local sẽ lập tức phản ánh trong container. Khi deploy production, xóa dòng này đi.
+> 💡 **MẸO:** Khi phát triển (development), thêm `volumes: - ./app:/app/app` để hot reload — thay đổi code trên máy local sẽ lập tức phản ánh trong container. Khi deploy production, xóa dòng này đi.
 
 Các lệnh Docker Compose cần biết:
 
@@ -321,7 +321,7 @@ docker compose up -d --build
 
 > ⚠️ **LƯU Ý:** Không commit `docker-compose.yml` chứa password thật vào git. Sử dụng `.env` file cho secrets và thêm `.env` vào `.gitignore`. Docker Compose tự động đọc file `.env` trong cùng thư mục.
 
-## 7.4 CI/CD với GitHub Actions
+## 12.4 CI/CD với GitHub Actions
 
 CI/CD là viết tắt của Continuous Integration (Tích hợp liên tục) và Continuous Deployment (Triển khai liên tục). CI đảm bảo mỗi lần push code lên GitHub, toàn bộ test suite tự động chạy — phát hiện lỗi sớm trước khi merge. CD tự động deploy lên server khi code pass tất cả tests. Đây là lỗi phổ biến nhất và mất điểm nghiêm trọng ở tiêu chí DevOps — phần lớn đội bỏ qua CI/CD.
 
@@ -398,7 +398,7 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          pytest tests/ -v --cov=src --cov-report=xml --cov-report=term-missing
+          pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -469,7 +469,7 @@ jobs:
 
 Workflow này tự động deploy mỗi khi code được merge vào nhánh `main`. Nó gọi Render Deploy Hook qua HTTP POST — Render sẽ pull image mới nhất và deploy.
 
-## 7.5 Deploy lên Cloud
+## 12.5 Deploy lên Cloud
 
 Sau khi đã có Docker image và CI/CD pipeline, bước tiếp theo là deploy ứng dụng lên cloud để người dùng thực sự truy cập được. Trong AI20K, Live URL (URL truy cập được) là một trong 10 deliverables bắt buộc.
 
@@ -539,7 +539,7 @@ curl -o /dev/null -s -w "Time: %{time_total}s\n" \
 
 > ⚠️ **LƯU Ý:** Render free tier "sleeps" sau 15 phút không có request. Lần truy cập đầu tiên sau sleep mất 30-60 giây để "wake up". Dùng cron job (như UptimeRobot) ping mỗi 5 phút để giữ server awake, hoặc upgrade lên paid plan.
 
-## 7.6 Monitoring và Logging
+## 12.6 Monitoring và Logging
 
 Monitoring (giám sát) và Logging (ghi log) là hai pilre của vận hành ứng dụng production. Không có monitoring, bạn không biết ứng dụng đang chạy tốt hay không. Không có logging, bạn không thể debug khi có lỗi. Trong tiêu chí DevOps của AI20K, monitoring và logging là yếu tố phân biệt giữa điểm trung bình và điểm cao.
 
@@ -548,7 +548,7 @@ Monitoring (giám sát) và Logging (ghi log) là hai pilre của vận hành �
 Python có thư viện `logging` tích hợp sẵn, nhưng cấu hình mặc định khá cơ bản. Dưới đây là cấu hình logging production-ready:
 
 ```python
-# src/core/logging_config.py
+# app/core/logging_config.py
 import logging
 import sys
 import json
@@ -676,7 +676,7 @@ Trên LangSmith dashboard, bạn sẽ thấy:
 Health check endpoint là URL mà monitoring tools gọi định kỳ để kiểm tra ứng dụng còn sống và hoạt động đúng:
 
 ```python
-# src/api/health.py
+# app/api/health.py
 from fastapi import APIRouter, Depends
 from datetime import datetime, timezone
 import logging
