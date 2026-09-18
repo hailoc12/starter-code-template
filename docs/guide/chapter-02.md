@@ -115,6 +115,17 @@ Mỗi thư mục phục vụ một mục đích cụ thể. Hãy hiểu rõ trư
 
 **Quy tắc:** chuẩn bị "hoàn thành hơn hoàn hảo". Tầng 1 có thể vứt đi 100% — và đó là thắng, không phải lỗ. Khi chuyển lên tầng 2, mang theo đúng 2 thứ từ tầng 1: câu hỏi user thật (→ golden dataset Chương 10) + USP đã validate (Chương 5).
 
+```mermaid
+flowchart LR
+    A[Nhan repo tren Phoenix] --> B[Clone repo doi]
+    B --> C[Tao venv Python 3.12]
+    C --> D[Cap nhat requirements.txt]
+    D --> E[Config .env: API key + cascade model]
+    E --> F[Setup AI logging hooks]
+    F --> G[make run: server + Swagger UI]
+    G --> H[Branch develop + commit dau]
+```
+
 ## Thiết lập môi trường — Đừng để "trên máy tôi chạy được"
 
 Một câu nói kinh điển trong ngành phần mềm là "It works on my machine" — "Trên máy tôi chạy được." Nỗi ám ảnh này xuất phát từ việc môi trường phát triển không được setup đồng bộ: phiên bản Python khác, thư viện khác, biến môi trường khác. Phần này sẽ giúp bạn thiết lập môi trường đúng cách để không chỉ "trên máy bạn chạy được" mà "trên mọi máy đều chạy được."
